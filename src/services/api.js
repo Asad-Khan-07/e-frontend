@@ -31,6 +31,10 @@ export const getAllOrders = () => fetch(`${BASE_URL}/orders`, { headers: getHead
 export const updateOrder = (id, data) => fetch(`${BASE_URL}/orders/${id}`, { method: 'PUT', headers: getHeaders(true), body: JSON.stringify(data) }).then(r => r.json())
 export const cancelOrder = (id) => fetch(`${BASE_URL}/orders/${id}`, { method: 'PUT', headers: getHeaders(false), body: JSON.stringify({ status: 'cancelled' }) }).then(r => r.json())
 
+// Stripe Payment
+export const createPaymentIntent = (data) => fetch(`${BASE_URL}/payment/create-payment-intent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(r => r.json())
+export const confirmStripePayment = (data) => fetch(`${BASE_URL}/payment/confirm`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(r => r.json())
+
 // Auth
 export const adminLogin = (data) => fetch(`${BASE_URL}/auth/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(r => r.json())
 export const userLogin = (data) => fetch(`${BASE_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(r => r.json())
