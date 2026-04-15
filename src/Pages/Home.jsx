@@ -1,8 +1,22 @@
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { products } from '../data/products'
 import Hero from '../components/Hero'
 import Footer from '../components/Footer'
 import { useCart } from '../context/context'
+
+function SkeletonCard() {
+  return (
+    <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden animate-pulse">
+      <div className="h-64 bg-white/10" />
+      <div className="p-4 space-y-3">
+        <div className="h-3 bg-white/10 rounded w-1/3" />
+        <div className="h-4 bg-white/10 rounded w-2/3" />
+        <div className="h-4 bg-white/10 rounded w-1/4" />
+      </div>
+    </div>
+  )
+}
 
 function ProductCard({ product }) {
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -11,7 +25,6 @@ function ProductCard({ product }) {
   return (
     <Link to={`/products/${product.id}`} className="group block">
       <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-all duration-500 hover:-translate-y-1">
-        {/* Image */}
         <div className="relative h-64 overflow-hidden">
           <img
             src={product.image}
@@ -19,28 +32,20 @@ function ProductCard({ product }) {
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
-          {/* Badge */}
           {product.badge && (
             <span className="absolute top-3 left-3 bg-amber-400 text-black text-xs font-bold px-2 py-1 rounded-full">
               {product.badge}
             </span>
           )}
-
-          {/* Discount */}
           <span className="absolute top-3 right-3 bg-red-500/90 text-white text-xs font-bold px-2 py-1 rounded-full">
             -{discount}%
           </span>
-
-          {/* Quick Add */}
           <div className="absolute bottom-3 left-3 right-3 translate-y-8 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
             <button className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold text-sm py-2 rounded-xl transition-colors">
               Quick Add
             </button>
           </div>
         </div>
-
-        {/* Info */}
         <div className="p-4 text-start">
           <p className="text-white/40 text-xs mb-1">{product.category}</p>
           <h3 className="font-bold text-white group-hover:text-amber-400 transition-colors">{product.name}</h3>
@@ -65,12 +70,17 @@ function ProductCard({ product }) {
 }
 
 export default function Home() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
   const featured = products.slice(4, 8)
   const categories = Object.values(
     products.reduce((acc, p) => {
-      if (!acc[p.category]) {
-        acc[p.category] = p
-      }
+      if (!acc[p.category]) acc[p.category] = p
       return acc
     }, {})
   ).slice(0, 4)
@@ -79,26 +89,14 @@ export default function Home() {
     <main>
       <Hero />
 
-      {/* Category Icons Section */}
+      {/* Category Images */}
       <section className="py-20 max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            {
-              label: 'Clothing',
-              image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80',
-            },
-            {
-              label: 'Footwear',
-              image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
-            },
-            {
-              label: 'Accessories',
-              image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400&q=80',
-            },
-            {
-              label: 'Bags',
-              image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80',
-            },
+            { label: 'Clothing', image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80' },
+            { label: 'Footwear', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80' },
+            { label: 'Accessories', image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400&q=80' },
+            { label: 'Bags', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80' },
           ].map((cat) => (
             <Link
               key={cat.label}
@@ -111,7 +109,7 @@ export default function Home() {
                 className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-              <p className="absolute bottom-3 left-4 font-bold text-white text-base">{cat.label}</p>
+              <p className="absolute bottom-3 left-4 font-bold text-base" style={{ color: '#fff' }}>{cat.label}</p>
             </Link>
           ))}
         </div>
@@ -131,11 +129,11 @@ export default function Home() {
             </svg>
           </Link>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {featured.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading
+            ? [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+            : featured.map((product) => <ProductCard key={product.id} product={product} />)
+          }
         </div>
       </section>
 
@@ -152,11 +150,11 @@ export default function Home() {
             </svg>
           </Link>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {categories.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading
+            ? [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+            : categories.map((product) => <ProductCard key={product.id} product={product} />)
+          }
         </div>
       </section>
 
@@ -169,12 +167,13 @@ export default function Home() {
           </div>
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
-              <h2 className="text-4xl font-black text-black mb-2">Sale Up To 40% Off</h2>
-              <p className="text-black/60 text-lg">Limited time offer on selected items. Don't miss out!</p>
+              <h2 className="text-4xl font-black" style={{ color: '#0f172a' }}>Sale Up To 40% Off</h2>
+              <p className="text-lg" style={{ color: 'rgba(15,23,42,0.6)' }}>Limited time offer on selected items. Don't miss out!</p>
             </div>
             <Link
               to="/products"
-              className="shrink-0 bg-black text-white font-bold px-8 py-4 rounded-full hover:bg-black/80 transition-colors"
+              className="shrink-0 font-bold px-8 py-4 rounded-full transition-colors"
+              style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
             >
               Shop Sale
             </Link>

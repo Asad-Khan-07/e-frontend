@@ -30,7 +30,7 @@ function Hero() {
           {/* Badge */}
           <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 ${isLight ? 'bg-amber-400/10 border border-amber-300/40' : 'bg-amber-400/10 border border-amber-400/30'}`}>
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-amber-400 text-sm font-medium">New Collection 2025</span>
+            <span className={`${isLight ? 'text-black' : 'text-amber-400'} text-sm font-medium`}>New Collection 2025</span>
           </div>
 
           <h1 className={`text-6xl md:text-7xl font-black leading-none mb-6 ${isLight ? 'text-slate-950' : 'text-white'}`}>
@@ -54,7 +54,7 @@ function Hero() {
             </Link>
             <Link
               to="/products"
-              className={`px-8 py-4 rounded-full font-bold transition-all hover:scale-105 ${isLight ? 'border border-slate-300 text-slate-950 hover:border-slate-400 hover:bg-slate-100' : 'border border-white/20 text-white hover:border-white/50 hover:bg-white/5'}`}
+              className={`px-8 py-4 rounded-full font-bold transition-all hover:scale-105 ${isLight ? 'border border-slate-800 text-slate-950 hover:border-slate-400 hover:bg-slate-100' : 'border border-amber-300 text-white hover:border-white/50 hover:bg-white/5'}`}
             >
               View Collections
             </Link>

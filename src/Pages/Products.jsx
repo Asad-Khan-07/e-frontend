@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getProducts, getCategories } from '../services/api'
 import { useCart, useTheme } from '../context/context'
+import { ClipLoader } from 'react-spinners'
 
 function ProductCard({ product }) {
   const { cart, setCart } = useCart()
@@ -109,11 +110,11 @@ export default function Products() {
           ))}
         </div>
 
+        {/* Loader / Products */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-80 rounded-2xl bg-white/5 animate-pulse" />
-            ))}
+          <div className="flex flex-col items-center justify-center py-32 gap-4">
+            <ClipLoader color="#fbbf24" size={52} speedMultiplier={0.9} />
+            <p className={`text-sm ${isLight ? 'text-slate-400' : 'text-white/30'}`}>Loading products...</p>
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-20 text-white/30">No products found</div>
