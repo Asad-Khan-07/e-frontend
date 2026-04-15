@@ -110,7 +110,7 @@ export default function Categories() {
       </section>
 
       {/* Banner */}
-      <section className="py-12 max-w-7xl mx-auto px-6">
+     <section className="py-12 max-w-7xl mx-auto px-6">
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-amber-400 to-orange-500 p-12 md:p-16">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white blur-3xl" />
@@ -118,18 +118,20 @@ export default function Categories() {
           </div>
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
-              <h2 className="text-4xl font-black text-black mb-2">Sale Up To 40% Off</h2>
-              <p className="text-black/60 text-lg">Limited time offer on selected items. Don't miss out!</p>
+              <h2 className="text-4xl font-black" style={{ color: '#0f172a' }}>Sale Up To 40% Off</h2>
+              <p className="text-lg" style={{ color: 'rgba(15,23,42,0.6)' }}>Limited time offer on selected items. Don't miss out!</p>
             </div>
             <Link
               to="/products"
-              className="shrink-0 bg-black text-white font-bold px-8 py-4 rounded-full hover:bg-black/80 transition-colors"
+              className="shrink-0 font-bold px-8 py-4 rounded-full transition-colors"
+              style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
             >
               Shop Sale
             </Link>
           </div>
         </div>
       </section>
+
 
       <Footer />
     </main>
