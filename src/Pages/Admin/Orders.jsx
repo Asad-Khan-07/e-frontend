@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getAllOrders, updateOrder } from '../../services/api'
+import { useCart, useTheme } from '../../context/context'
 
 const statusColors = {
   pending:    'bg-yellow-500/20 text-yellow-400 border-yellow-500/20',
@@ -16,6 +17,8 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [selected, setSelected] = useState(null)
+  const { convertToUSD } = useCart()
+  const { theme } = useTheme()
 
   useEffect(() => { load() }, [])
 
@@ -77,7 +80,7 @@ export default function AdminOrders() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div>
+                  <div className='text-start'>
                     <p className="font-mono text-amber-400 text-sm font-bold">#{order._id.slice(-8).toUpperCase()}</p>
                     <p className="text-white/60 text-sm mt-0.5">{order.customerName} · {order.customerPhone}</p>
                   </div>
@@ -89,7 +92,7 @@ export default function AdminOrders() {
                   <span className={`text-xs font-bold px-3 py-1 rounded-full border ${statusColors[order.status]}`}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
-                  <span className="text-amber-400 font-bold text-sm">Rs {order.totalAmount?.toLocaleString()}</span>
+                  <span className="text-amber-400 font-bold text-sm">${convertToUSD(order.totalAmount).toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-4 mt-3">
@@ -107,7 +110,7 @@ export default function AdminOrders() {
       {/* Order Detail Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-          <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className={`${theme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-[#111] border-white/10'} rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}>
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <div>
                 <h3 className="font-bold">Order Detail</h3>

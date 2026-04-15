@@ -475,7 +475,7 @@ export const products = [
     colors: ["#1a1a1a", "#ffffff"],
     sizes: ["One Size"],
   },
-  // Bas yeh naye products add karo apni existing file ke end mein, closing ] se pehle:
+  // Add new products here before the closing ] of the existing file:
 
   // ─── Fragrance (new category) ────────────────────────────
   {

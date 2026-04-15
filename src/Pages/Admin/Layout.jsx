@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom'
 import { getStats } from '../../services/api'
+import { useTheme } from '../../context/context'
 
 const navItems = [
   {
@@ -49,6 +50,7 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const navigate = useNavigate()
   const location = useLocation()
+  const { theme } = useTheme()
   const admin = JSON.parse(localStorage.getItem('adminUser') || 'null')
 
   useEffect(() => {
@@ -65,9 +67,9 @@ export default function AdminLayout() {
   const isActive = (path, exact) => exact ? location.pathname === path : location.pathname.startsWith(path)
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex">
+    <div className={`min-h-screen ${theme === 'light' ? 'bg-slate-50 text-slate-900' : 'bg-[#0a0a0a] text-white'} flex`}>
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-[#111] border-r border-white/10 flex flex-col transition-all duration-300 fixed h-full z-20`}>
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} ${theme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-[#111] border-white/10'} border-r flex flex-col transition-all duration-300 fixed h-full z-20`}>
         {/* Logo */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
           {sidebarOpen && <span className="text-lg font-black text-amber-400">LUXE<span className="text-white">ADMIN</span></span>}
@@ -108,7 +110,7 @@ export default function AdminLayout() {
               {admin?.name?.charAt(0) || 'A'}
             </div>
             {sidebarOpen && (
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0  text-start">
                 <p className="text-sm font-medium truncate">{admin?.name || 'Admin'}</p>
                 <button onClick={logout} className="text-xs text-white/30 hover:text-red-400 transition-colors flex items-center gap-1">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -123,12 +125,12 @@ export default function AdminLayout() {
       {/* Main content */}
       <main className={`flex-1 ${sidebarOpen ? 'ml-64' : 'ml-16'} transition-all duration-300`}>
         {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-[#0a0a0a]/80 backdrop-blur-sm border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <div className={`sticky top-0 z-10 ${theme === 'light' ? 'bg-slate-50/80 border-slate-200' : 'bg-[#0a0a0a]/80 border-white/10'} backdrop-blur-sm border-b px-6 py-4 flex items-center justify-between`}>
           <h1 className="font-bold">
             {navItems.find(n => isActive(n.path, n.exact))?.label || 'Admin Panel'}
           </h1>
           {stats && (
-            <div className="flex items-center gap-4 text-sm text-white/40">
+            <div className={`flex items-center gap-4 text-sm ${theme === 'light' ? 'text-slate-600' : 'text-white/40'}`}>
               <span className="flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                 {stats.totalProducts} products
@@ -146,20 +148,20 @@ export default function AdminLayout() {
           <div className="p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {statConfigs.map(stat => (
-                <div key={stat.label} className="bg-white/5 border border-white/10 rounded-2xl p-5">
+                <div key={stat.label} className={`${theme === 'light' ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'} rounded-2xl p-5`}>
                   <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center ${stat.color} mb-3`}>
                     {stat.icon}
                   </div>
-                  <div className="text-2xl font-black text-white">
+                  <div className={`text-2xl font-black ${theme === 'light' ? 'text-slate-900' : 'text-white'} text-start`}>
                     {stat.isRevenue ? `Rs ${(stats.revenue || 0).toLocaleString()}` : stats[stat.key]}
                   </div>
-                  <div className="text-white/40 text-sm mt-1">{stat.label}</div>
+                  <div className={`${theme === 'light' ? 'text-slate-500' : 'text-white/40'} text-sm mt-1 text-start`}>{stat.label}</div>
                 </div>
               ))}
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center text-white/30">
-              <svg className="w-12 h-12 mx-auto mb-3 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
-              <p className="text-lg font-bold text-white/60 mb-2">Welcome to Admin Panel</p>
+            <div className={`${theme === 'light' ? 'bg-white border-slate-200 text-slate-400' : 'bg-white/5 border-white/10 text-white/30'} rounded-2xl p-8 text-center`}>
+              <svg className={`w-12 h-12 mx-auto mb-3 ${theme === 'light' ? 'text-slate-300' : 'text-white/10'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
+              <p className={`text-lg font-bold mb-2 ${theme === 'light' ? 'text-slate-700' : 'text-white/60'}`}>Welcome to Admin Panel</p>
               <p>Use the sidebar to manage your store</p>
             </div>
           </div>

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getProducts, getCategories } from '../services/api'
-import { useCart } from '../context/context'
+import { useCart, useTheme } from '../context/context'
 
 function ProductCard({ product }) {
   const { cart, setCart } = useCart()
+  const { theme } = useTheme()
+  const { convertToUSD } = useCart()
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
 
   const addToCart = (e) => {
@@ -36,12 +38,12 @@ function ProductCard({ product }) {
             </button>
           </div>
         </div>
-        <div className="p-4">
+        <div className="p-4 text-start">
           <p className="text-white/40 text-xs mb-1">{product.category}</p>
           <h3 className="font-bold text-white group-hover:text-amber-400 transition-colors">{product.name}</h3>
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-amber-400 font-bold">Rs {product.price?.toLocaleString()}</span>
-            <span className="text-white/30 text-sm line-through">Rs {product.originalPrice?.toLocaleString()}</span>
+            <span className="text-amber-400 font-bold">${convertToUSD(product.price)}</span>
+            <span className="text-white/30 text-sm line-through">${convertToUSD(product.originalPrice)}</span>
           </div>
         </div>
       </div>
@@ -55,6 +57,7 @@ export default function Products() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const { theme } = useTheme()
 
   useEffect(() => {
     getCategories().then(data => setCategories(Array.isArray(data) ? data : []))
@@ -71,8 +74,10 @@ export default function Products() {
     })
   }, [activeCategory, search])
 
+  const isLight = theme === 'light'
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className={`min-h-screen ${isLight ? 'bg-slate-50 text-slate-900' : 'bg-[#0a0a0a] text-white'}`}>
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-black">All Products</h1>
@@ -81,7 +86,7 @@ export default function Products() {
             placeholder="Search products..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:border-amber-400/50 transition-colors text-sm w-full md:w-64"
+            className={`rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-400/50 transition-colors text-sm w-full md:w-64 ${isLight ? 'bg-white border border-slate-300 text-slate-900 placeholder-slate-500' : 'bg-white/5 border border-white/10 text-white placeholder-white/30'}`}
           />
         </div>
 

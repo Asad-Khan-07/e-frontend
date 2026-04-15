@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getProducts, createProduct, updateProduct, deleteProduct, getCategories } from '../../services/api'
+import { useCart, useTheme } from '../../context/context'
 
 const EMPTY = {
   name: '', price: '', originalPrice: '', category: '',
@@ -16,6 +17,8 @@ export default function AdminProducts() {
   const [form, setForm] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
+  const { convertToUSD } = useCart()
+  const { theme } = useTheme()
 
   useEffect(() => {
     loadData()
@@ -125,7 +128,7 @@ export default function AdminProducts() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <img src={p.image} alt={p.name} className="w-10 h-10 rounded-lg object-cover bg-white/10" />
-                      <div>
+                      <div className=' text-start'>
                         <p className="font-medium text-sm">{p.name}</p>
                         {p.badge && <span className="text-xs text-amber-400">{p.badge}</span>}
                       </div>
@@ -133,8 +136,8 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-6 py-4 text-white/60 text-sm">{p.category}</td>
                   <td className="px-6 py-4">
-                    <p className="text-sm font-bold text-amber-400">Rs {p.price?.toLocaleString()}</p>
-                    <p className="text-xs text-white/30 line-through">Rs {p.originalPrice?.toLocaleString()}</p>
+                    <p className="text-sm font-bold text-amber-400">${convertToUSD(p.price).toFixed(2)}</p>
+                    <p className="text-xs text-white/30 line-through">${convertToUSD(p.originalPrice).toFixed(2)}</p>
                   </td>
                   <td className="px-6 py-4 text-sm text-white/60">{p.stock ?? 100}</td>
                   <td className="px-6 py-4">
@@ -171,7 +174,7 @@ export default function AdminProducts() {
       {/* Modal */}
       {modal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-          <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className={`${theme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-[#111] border-white/10'} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <h3 className="text-lg font-bold">{editing ? 'Edit Product' : 'Add New Product'}</h3>
               <button onClick={() => setModal(false)} className="text-white/40 hover:text-white text-xl">✕</button>
@@ -179,8 +182,8 @@ export default function AdminProducts() {
             <div className="p-6 grid grid-cols-2 gap-4">
               {[
                 { key: 'name', label: 'Product Name', full: true },
-                { key: 'price', label: 'Price (Rs)', type: 'number' },
-                { key: 'originalPrice', label: 'Original Price (Rs)', type: 'number' },
+                { key: 'price', label: 'Price ($)', type: 'number' },
+                { key: 'originalPrice', label: 'Original Price ($)', type: 'number' },
                 { key: 'stock', label: 'Stock', type: 'number' },
                 { key: 'image', label: 'Image URL', full: true },
                 { key: 'description', label: 'Description', full: true, textarea: true },
@@ -189,7 +192,7 @@ export default function AdminProducts() {
                 { key: 'badge', label: 'Badge (optional)' },
               ].map(field => (
                 <div key={field.key} className={field.full ? 'col-span-2' : ''}>
-                  <label className="text-white/60 text-xs mb-1 block">{field.label}</label>
+                  <label className="text-white/60 text-xs mb-1 block text-start">{field.label}</label>
                   {field.textarea ? (
                     <textarea
                       value={form[field.key] || ''}
@@ -213,8 +216,8 @@ export default function AdminProducts() {
                 <label className="text-white/60 text-xs mb-1 block">Category</label>
                 <select
                   value={form.category || ''}
-                  onChange={e => setForm({ ...form, category: e.target.value })}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-400/50 transition-colors"
+                  onChange={e => setForm({ ...form, category:   e.target.value })}
+                  className={`w-full ${theme === 'light' ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-[#1a1a1a] border-white/10 text-white'} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-400/50 transition-colors`}
                 >
                   <option value="">Select category</option>
                   {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
@@ -223,11 +226,11 @@ export default function AdminProducts() {
 
               {/* Status toggle */}
               <div>
-                <label className="text-white/60 text-xs mb-1 block">Status</label>
+                <label className="text-white/60 text-xs mb-1 block text-start">Status</label>
                 <select
                   value={form.isActive ? 'true' : 'false'}
                   onChange={e => setForm({ ...form, isActive: e.target.value === 'true' })}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-400/50 transition-colors"
+                  className={`w-full ${theme === 'light' ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-[#1a1a1a] border-white/10 text-white'} rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-400/50 transition-colors`}
                 >
                   <option value="true">Active</option>
                   <option value="false">Inactive</option>

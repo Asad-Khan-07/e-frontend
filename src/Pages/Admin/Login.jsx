@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminLogin } from '../../services/api'
+import { useTheme } from '../../context/context'
 
 export default function AdminLogin() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  const inputClasses = `w-full rounded-xl px-4 py-3 transition-colors focus:outline-none ${isLight ? 'bg-white/90 border border-slate-300 text-slate-900 placeholder-slate-500 focus:border-amber-400/50' : 'bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-amber-400/50'}`
 
   const handleSubmit = async () => {
     setError('')
@@ -27,34 +31,34 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+    <div className={`min-h-screen ${theme === 'light' ? 'bg-slate-50' : 'bg-[#0a0a0a]'} flex items-center justify-center px-4`}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <span className="text-3xl font-black text-amber-400">LUXE<span className="text-white">ADMIN</span></span>
-          <p className="text-white/40 mt-2 text-sm">Admin Panel Login</p>
+          <span className="text-3xl font-black text-amber-400">LUXE<span className={theme === 'light' ? 'text-slate-900' : 'text-white'}>ADMIN</span></span>
+          <p className={`text-white/40 mt-2 text-sm ${theme === 'light' ? 'text-slate-500' : ''}`}>Admin Panel Login</p>
         </div>
 
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
           <div className="space-y-4">
             <div>
-              <label className="text-white/60 text-sm mb-1 block">Email</label>
+              <label className={`${isLight ? 'text-slate-700' : 'text-white/60'} text-sm mb-1 block text-start`}>Email</label>
               <input
                 type="email"
                 placeholder="admin@store.com"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-amber-400/50 transition-colors"
+                className={inputClasses}
               />
             </div>
             <div>
-              <label className="text-white/60 text-sm mb-1 block">Password</label>
+              <label className={`${isLight ? 'text-slate-700' : 'text-white/60'} text-sm mb-1 block text-start`}>Password</label>
               <input
                 type="password"
                 placeholder="••••••••"
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-amber-400/50 transition-colors"
+                className={inputClasses}
               />
             </div>
           </div>

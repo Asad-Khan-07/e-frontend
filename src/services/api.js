@@ -1,5 +1,13 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
+const parseJSON = async (res) => {
+  const text = await res.text()
+  if (!res.ok) {
+    throw new Error(text || res.statusText)
+  }
+  return text ? JSON.parse(text) : null
+}
+
 const getHeaders = (isAdmin = false) => {
   const key = isAdmin ? 'adminToken' : 'userToken'
   const token = localStorage.getItem(key)
@@ -32,8 +40,16 @@ export const updateOrder = (id, data) => fetch(`${BASE_URL}/orders/${id}`, { met
 export const cancelOrder = (id) => fetch(`${BASE_URL}/orders/${id}`, { method: 'PUT', headers: getHeaders(false), body: JSON.stringify({ status: 'cancelled' }) }).then(r => r.json())
 
 // Stripe Payment — FIX: currency 'pkr' kar diya (pehle 'usd' tha)
-export const createPaymentIntent = (data) => fetch(`${BASE_URL}/payment/create-payment-intent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...data, currency: 'pkr' }) }).then(r => r.json())
-export const confirmStripePayment = (data) => fetch(`${BASE_URL}/payment/confirm`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(r => r.json())
+export const createPaymentIntent = (data) => fetch(`${BASE_URL}/payment/create-payment-intent`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ ...data, currency: 'pkr' })
+}).then(parseJSON)
+export const confirmStripePayment = (data) => fetch(`${BASE_URL}/payment/confirm`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+}).then(parseJSON)
 
 // Auth
 export const adminLogin = (data) => fetch(`${BASE_URL}/auth/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(r => r.json())

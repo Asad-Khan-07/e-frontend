@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom'
 import { products } from '../data/products'
 import Hero from '../components/Hero'
 import Footer from '../components/Footer'
+import { useCart } from '../context/context'
 
 function ProductCard({ product }) {
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const { convertToUSD } = useCart()
 
   return (
     <Link to={`/products/${product.id}`} className="group block">
@@ -39,12 +41,12 @@ function ProductCard({ product }) {
         </div>
 
         {/* Info */}
-        <div className="p-4">
+        <div className="p-4 text-start">
           <p className="text-white/40 text-xs mb-1">{product.category}</p>
           <h3 className="font-bold text-white group-hover:text-amber-400 transition-colors">{product.name}</h3>
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-amber-400 font-bold">Rs {product.price.toLocaleString()}</span>
-            <span className="text-white/30 text-sm line-through">Rs {product.originalPrice.toLocaleString()}</span>
+            <span className="text-amber-400 font-bold">${convertToUSD(product.price).toFixed(2)}</span>
+            <span className="text-white/30 text-sm line-through">${convertToUSD(product.originalPrice).toFixed(2)}</span>
           </div>
           <div className="flex items-center gap-1 mt-2">
             <div className="flex">
@@ -64,74 +66,52 @@ function ProductCard({ product }) {
 
 export default function Home() {
   const featured = products.slice(4, 8)
- const categories = Object.values(
-  products.reduce((acc, p) => {
-    if (!acc[p.category]) {
-      acc[p.category] = p
-    }
-    return acc
-  }, {})
-).slice(0, 4)
+  const categories = Object.values(
+    products.reduce((acc, p) => {
+      if (!acc[p.category]) {
+        acc[p.category] = p
+      }
+      return acc
+    }, {})
+  ).slice(0, 4)
+
   return (
     <main>
-   
-<Hero/>
-      {/* Categories */}
+      <Hero />
+
+      {/* Category Icons Section */}
       <section className="py-20 max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             {
-              label: 'Clothing', color: 'from-blue-500/20 to-blue-600/20', border: 'border-blue-500/20', iconColor: '#3b82f6',
-              icon: (
-                <svg viewBox="0 0 48 48" className="w-10 h-10 group-hover:scale-110 transition-transform" fill="none">
-                  <path d="M16 6 L8 14 L4 22 L12 24 L12 42 L36 42 L36 24 L44 22 L40 14 L32 6 C30 10 27 12 24 12 C21 12 18 10 16 6Z" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M16 6 C18 10 21 12 24 12 C27 12 30 10 32 6" fill="none" stroke="#1d4ed8" strokeWidth="1.5"/>
-                </svg>
-              )
+              label: 'Clothing',
+              image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80',
             },
             {
-              label: 'Footwear', color: 'from-green-500/20 to-green-600/20', border: 'border-green-500/20', iconColor: '#10b981',
-              icon: (
-                <svg viewBox="0 0 48 48" className="w-10 h-10 group-hover:scale-110 transition-transform" fill="none">
-                  <path d="M6 30 C6 26 10 20 18 18 L30 16 C36 15 42 18 42 24 L42 32 C42 34 40 36 38 36 L10 36 C8 36 6 34 6 32Z" fill="#10b981" stroke="#047857" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M6 30 L18 28 L30 24" stroke="#047857" strokeWidth="1.2" strokeLinecap="round"/>
-                  <ellipse cx="12" cy="36" rx="5" ry="3" fill="#047857"/>
-                  <ellipse cx="36" cy="36" rx="5" ry="3" fill="#047857"/>
-                </svg>
-              )
+              label: 'Footwear',
+              image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
             },
             {
-              label: 'Accessories', color: 'from-amber-500/20 to-amber-600/20', border: 'border-amber-500/20', iconColor: '#f59e0b',
-              icon: (
-                <svg viewBox="0 0 48 48" className="w-10 h-10 group-hover:scale-110 transition-transform" fill="none">
-                  <circle cx="24" cy="24" r="16" stroke="#f59e0b" strokeWidth="2.5"/>
-                  <circle cx="24" cy="24" r="11" fill="#f59e0b" stroke="#b45309" strokeWidth="1.5"/>
-                  <circle cx="24" cy="24" r="7" fill="#fcd34d" stroke="#b45309" strokeWidth="1"/>
-                  <line x1="24" y1="17" x2="24" y2="24" stroke="#1f2937" strokeWidth="1.8" strokeLinecap="round"/>
-                  <line x1="24" y1="24" x2="29" y2="27" stroke="#1f2937" strokeWidth="1.5" strokeLinecap="round"/>
-                  <circle cx="24" cy="24" r="1.5" fill="#1f2937"/>
-                </svg>
-              )
+              label: 'Accessories',
+              image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400&q=80',
             },
             {
-              label: 'Bags', color: 'from-purple-500/20 to-purple-600/20', border: 'border-purple-500/20', iconColor: '#7c3aed',
-              icon: (
-                <svg viewBox="0 0 48 48" className="w-10 h-10 group-hover:scale-110 transition-transform" fill="none">
-                  <rect x="8" y="18" width="32" height="24" rx="4" fill="#7c3aed" stroke="#4c1d95" strokeWidth="1.5"/>
-                  <path d="M17 18 C17 12 31 12 31 18" stroke="#4c1d95" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                  <rect x="18" y="26" width="12" height="8" rx="2" fill="#6d28d9" stroke="#4c1d95" strokeWidth="1"/>
-                  <line x1="24" y1="26" x2="24" y2="34" stroke="#4c1d95" strokeWidth="1"/>
-                </svg>
-              )
+              label: 'Bags',
+              image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80',
             },
           ].map((cat) => (
             <Link
               key={cat.label}
               to="/products"
-              className={`bg-gradient-to-br ${cat.color} border ${cat.border} hover:scale-105 rounded-2xl p-6 text-center transition-all duration-300 group flex flex-col items-center`}
+              className="relative overflow-hidden rounded-2xl hover:scale-105 transition-all duration-300 group block"
             >
-              <div className="mb-3">{cat.icon}</div>
-              <p className="font-bold text-white">{cat.label}</p>
+              <img
+                src={cat.image}
+                alt={cat.label}
+                className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <p className="absolute bottom-3 left-4 font-bold text-white text-base">{cat.label}</p>
             </Link>
           ))}
         </div>
@@ -159,10 +139,10 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Categories Products */}
       <section className="py-20 max-w-7xl mx-auto px-6">
         <div className="flex items-end justify-between mb-12">
           <div>
-            {/* <p className="text-amber-400 text-sm font-medium tracking-widest uppercase mb-2">Trending Now</p> */}
             <h2 className="text-4xl font-black">Categories</h2>
           </div>
           <Link to="/categories" className="text-white/50 hover:text-amber-400 text-sm font-medium flex items-center gap-1 transition-colors">
@@ -202,7 +182,7 @@ export default function Home() {
         </div>
       </section>
 
- <Footer/>
+      <Footer />
     </main>
   )
 }

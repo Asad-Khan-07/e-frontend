@@ -9,29 +9,30 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js'
-import { useCart } from '../context/context'
+import { useCart, useTheme } from '../context/context'
 import { placeOrder, createPaymentIntent, confirmStripePayment } from '../services/api'
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
 
 const steps = ['Cart', 'Shipping', 'Payment', 'Confirm']
 
-const cardElementStyle = {
-  style: {
-    base: {
-      color: '#ffffff',
-      fontFamily: 'inherit',
-      fontSize: '14px',
-      '::placeholder': { color: 'rgba(255,255,255,0.3)' },
-      backgroundColor: 'transparent',
-    },
-    invalid: { color: '#f87171' },
-  },
-}
-
 function CheckoutForm() {
   const stripe = useStripe()
   const elements = useElements()
+  const { theme } = useTheme()
+
+  const cardElementStyle = {
+    style: {
+      base: {
+        color: theme === 'light' ? '#0f172a' : '#ffffff',
+        fontFamily: 'inherit',
+        fontSize: '14px',
+        '::placeholder': { color: theme === 'light' ? 'rgba(15,23,42,0.5)' : 'rgba(255,255,255,0.3)' },
+        backgroundColor: 'transparent',
+      },
+      invalid: { color: '#f87171' },
+    },
+  }
 
   const [step, setStep] = useState(0)
   const [placed, setPlaced] = useState(false)
@@ -46,11 +47,11 @@ function CheckoutForm() {
     delivery: 'standard',
   })
 
-  const { cart, setCart } = useCart()
+  const { cart, setCart, convertToUSD } = useCart()
 
-  const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0)
-  const shipping = subtotal > 10000 ? 0 : 299
-  const discount = 500
+  const subtotal = cart.reduce((sum, i) => sum + convertToUSD(i.price * i.quantity), 0)
+  const shipping = subtotal > 36 ? 0 : convertToUSD(299)
+  const discount = convertToUSD(500)
   const total = subtotal + shipping - discount
 
   const updateQty = (cartItemId, delta) => {
@@ -74,7 +75,7 @@ function CheckoutForm() {
   const handleInput = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:border-amber-400/60 transition-colors"
-  const labelCls = "block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wide"
+  const labelCls = "block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wide text-start"
   const stripeBoxCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus-within:border-amber-400/60 transition-colors"
 
   const buildOrderData = (paymentMethod, paymentStatus = 'unpaid', transactionId = '') => ({
@@ -94,7 +95,7 @@ function CheckoutForm() {
         color: item.color || '',
       }
     }),
-    totalAmount: total,
+    totalAmount: Math.round(total * 280),
     paymentMethod,
     paymentStatus,
     ...(transactionId && { transactionId }),
@@ -112,17 +113,17 @@ function CheckoutForm() {
           setCart([])
           setPlaced(true)
         } else {
-          setOrderError(result?.message || 'Order place karne mein problem aayi.')
+          setOrderError(result?.message || 'There was a problem placing your order.')
         }
       } else {
         if (!stripe || !elements) {
-          setOrderError('Stripe load nahi hua. Page refresh karein.')
+          setOrderError('Stripe failed to load. Please refresh the page.')
           setPlacing(false)
           return
         }
-        const intentRes = await createPaymentIntent({ amount: total, currency: 'pkr' })
+        const intentRes = await createPaymentIntent({ amount: Math.round(total * 280), currency: 'pkr' })
         if (!intentRes?.clientSecret) {
-          setOrderError('Payment start nahi ho sakti. Dobara try karein.')
+          setOrderError('Payment could not start. Please try again.')
           setPlacing(false)
           return
         }
@@ -137,7 +138,7 @@ function CheckoutForm() {
           },
         })
         if (error) {
-          setOrderError(error.message || 'Card payment fail ho gayi.')
+          setOrderError(error.message || 'Card payment failed.')
           setPlacing(false)
           return
         }
@@ -150,12 +151,12 @@ function CheckoutForm() {
           setCart([])
           setPlaced(true)
         } else {
-          setOrderError('Payment complete nahi hui. Dobara try karein.')
+          setOrderError('Payment was not completed. Please try again.')
         }
       }
     } catch (err) {
       console.error('Payment error:', err)
-      setOrderError(`Network error: ${err.message || 'Internet check karein aur dobara try karein.'}`)
+      setOrderError(`Network error: ${err.message || 'Please check your internet connection and try again.'}`)
     } finally {
       setPlacing(false)
     }
@@ -170,16 +171,16 @@ function CheckoutForm() {
           </svg>
         </div>
         <h1 className="text-4xl font-black mb-3">Order Placed! 🎉</h1>
-        <p className="text-white/50 mb-2">Shukriya, <span className="text-white font-bold">{form.firstName || 'Customer'}</span>!</p>
+        <p className="text-white/50 mb-2">Thank you, <span className="text-white font-bold">{form.firstName || 'Customer'}</span>!</p>
         <p className="text-white/40 text-sm mb-2">Confirmation: <span className="text-amber-400">{form.email}</span></p>
         <p className="text-white/30 text-xs mb-8">
-          {form.payMethod === 'stripe' ? '✅ Card payment successful — Stripe se process ho gayi' : '💵 Cash on Delivery — delivery ke waqt payment karein'}
+          {form.payMethod === 'stripe' ? '✅ Card payment successful — processed by Stripe' : '💵 Cash on Delivery — pay upon delivery'}
         </p>
         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8 text-left space-y-2">
-          <div className="flex justify-between text-sm"><span className="text-white/40">Subtotal</span><span>Rs {subtotal.toLocaleString()}</span></div>
-          <div className="flex justify-between text-sm"><span className="text-white/40">Shipping</span><span>{shipping === 0 ? 'Free' : `Rs ${shipping}`}</span></div>
-          <div className="flex justify-between text-sm"><span className="text-white/40">Discount</span><span className="text-green-400">-Rs {discount}</span></div>
-          <div className="flex justify-between font-black text-amber-400 border-t border-white/10 pt-2 mt-2"><span>Total</span><span>Rs {total.toLocaleString()}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-white/40">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-white/40">Shipping</span><span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-white/40">Discount</span><span className="text-green-400">-${discount.toFixed(2)}</span></div>
+          <div className="flex justify-between font-black text-amber-400 border-t border-white/10 pt-2 mt-2"><span>Total</span><span>${total.toFixed(2)}</span></div>
         </div>
         <Link to="/" className="bg-amber-400 text-black font-black px-8 py-4 rounded-full hover:bg-amber-300 transition-colors inline-block">Back to Home</Link>
       </div>
@@ -212,8 +213,8 @@ function CheckoutForm() {
               <h2 className="text-2xl font-black mb-6">Your Cart <span className="text-white/30 font-normal text-lg">({cart.length} items)</span></h2>
               {cart.length === 0 ? (
                 <div className="text-center py-20 text-white/40">
-                  <p className="text-xl mb-4">Cart khali hai</p>
-                  <Link to="/products" className="text-amber-400 hover:underline">Products dekhein →</Link>
+                  <p className="text-xl mb-4">Your cart is empty</p>
+                  <Link to="/products" className="text-amber-400 hover:underline">Browse Products →</Link>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -242,8 +243,8 @@ function CheckoutForm() {
                             <button onClick={() => updateQty(item.cartItemId, +1)} className="w-8 h-8 flex items-center justify-center hover:bg-white/10 transition-colors text-lg">+</button>
                           </div>
                           <div className="text-right">
-                            <p className="text-amber-400 font-black">Rs {(item.price * item.quantity).toLocaleString()}</p>
-                            {item.quantity > 1 && <p className="text-white/30 text-xs">Rs {item.price.toLocaleString()} each</p>}
+                            <p className="text-amber-400 font-black">${(convertToUSD(item.price * item.quantity)).toFixed(2)}</p>
+                            {item.quantity > 1 && <p className="text-white/30 text-xs">${convertToUSD(item.price).toFixed(2)} each</p>}
                           </div>
                         </div>
                       </div>
@@ -286,9 +287,9 @@ function CheckoutForm() {
                   <label className={labelCls}>Delivery Method</label>
                   <div className="space-y-3">
                     {[
-                      { id: 'standard', label: 'Standard Delivery', sub: '5–7 business days', price: subtotal > 10000 ? 'Free' : 'Rs 299' },
-                      { id: 'express', label: 'Express Delivery', sub: '2–3 business days', price: 'Rs 599' },
-                      { id: 'same', label: 'Same Day (Karachi only)', sub: 'Order before 2 PM', price: 'Rs 999' },
+                      { id: 'standard', label: 'Standard Delivery', sub: '5–7 business days', price: subtotal > 36 ? 'Free' : `$${convertToUSD(299).toFixed(2)}` },
+                      { id: 'express', label: 'Express Delivery', sub: '2–3 business days', price: `$${convertToUSD(599).toFixed(2)}` },
+                      { id: 'same', label: 'Same Day (Karachi only)', sub: 'Order before 2 PM', price: `$${convertToUSD(999).toFixed(2)}` },
                     ].map(opt => (
                       <label key={opt.id} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${form.delivery === opt.id ? 'border-amber-400/60 bg-amber-400/5' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
                         <div className="flex items-center gap-3">
@@ -328,7 +329,7 @@ function CheckoutForm() {
               {form.payMethod === 'stripe' && (
                 <div className="space-y-4">
                   <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-3">
-                    <p className="text-blue-400 text-xs">🔒 Powered by Stripe — aapka card data encrypted aur secure hai</p>
+                    <p className="text-blue-400 text-xs">🔒 Powered by Stripe — your card data is encrypted and secure</p>
                   </div>
                   <div>
                     <label className={labelCls}>Cardholder Name</label>
@@ -362,15 +363,15 @@ function CheckoutForm() {
                     <span className="text-4xl">💵</span>
                     <div>
                       <p className="font-bold">Cash on Delivery</p>
-                      <p className="text-white/40 text-sm">Delivery ke waqt payment karein</p>
+                      <p className="text-white/40 text-sm">Pay on delivery</p>
                     </div>
                   </div>
                   <div className="bg-amber-400/10 border border-amber-400/20 rounded-xl p-4 space-y-2">
                     <p className="text-amber-400 text-sm font-bold">📌 Important:</p>
                     <ul className="text-white/50 text-sm space-y-1 list-disc list-inside">
-                      <li>Exact change rakhein: <span className="font-bold text-white">Rs {total.toLocaleString()}</span></li>
-                      <li>Delivery 5-7 business days mein hogi</li>
-                      <li>Order cancel karne ke liye profile mein jaein</li>
+                      <li>Exact change rakhein: <span className="font-bold text-white">${total.toFixed(2)}</span></li>
+                      <li>Delivery will arrive in 5-7 business days</li>
+                      <li>To cancel your order, go to your profile</li>
                     </ul>
                   </div>
                 </div>
@@ -382,7 +383,7 @@ function CheckoutForm() {
                   <button onClick={() => setStep(3)} className="flex-1 bg-amber-400 hover:bg-amber-300 text-black font-black py-4 rounded-2xl text-lg transition-all hover:scale-[1.01]">Review Order →</button>
                 ) : (
                   <button onClick={handlePlaceOrder} disabled={placing} className="flex-1 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 disabled:cursor-not-allowed text-black font-black py-4 rounded-2xl text-lg transition-all hover:scale-[1.01]">
-                    {placing ? '💳 Payment Processing...' : `💳 Pay · Rs ${total.toLocaleString()}`}
+                    {placing ? '💳 Payment Processing...' : `💳 Pay · $${total.toFixed(2)}`}
                   </button>
                 )}
               </div>
@@ -411,7 +412,7 @@ function CheckoutForm() {
                       <div key={item.cartItemId} className="flex items-center gap-3">
                         <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
                         <div className="flex-1"><p className="text-sm font-bold">{item.name}</p><p className="text-white/40 text-xs">Size: {item.size || 'N/A'} · Qty: {item.quantity}</p></div>
-                        <span className="text-amber-400 font-bold text-sm">Rs {(item.price * item.quantity).toLocaleString()}</span>
+                        <span className="text-amber-400 font-bold text-sm">${(convertToUSD(item.price * item.quantity)).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -429,8 +430,8 @@ function CheckoutForm() {
                 <button onClick={handlePlaceOrder} disabled={placing}
                   className="flex-1 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 disabled:cursor-not-allowed text-black font-black py-4 rounded-2xl text-lg transition-all hover:scale-[1.01]">
                   {placing
-                    ? (form.payMethod === 'stripe' ? '💳 Payment Processing...' : '📦 Order Place Ho Raha Hai...')
-                    : `${form.payMethod === 'stripe' ? '💳 Pay' : '📦 Place Order'} · Rs ${total.toLocaleString()}`}
+                    ? (form.payMethod === 'stripe' ? '💳 Payment Processing...' : '📦 Placing your order...')
+                    : `${form.payMethod === 'stripe' ? '💳 Pay' : '📦 Place Order'} · $${total.toFixed(2)}`}
                 </button>
               </div>
             </div>
@@ -452,16 +453,16 @@ function CheckoutForm() {
                     <p className="text-sm font-bold truncate">{item.name}</p>
                     <p className="text-white/40 text-xs">{item.size}</p>
                   </div>
-                  <span className="text-sm font-bold shrink-0">Rs {(item.price * item.quantity).toLocaleString()}</span>
+                  <span className="text-sm font-bold shrink-0">${(convertToUSD(item.price * item.quantity)).toFixed(2)}</span>
                 </div>
               ))}
             </div>
             <div className="border-t border-white/10 pt-4 space-y-2.5">
-              <div className="flex justify-between text-sm"><span className="text-white/40">Subtotal</span><span>Rs {subtotal.toLocaleString()}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-white/40">Shipping</span><span className={shipping === 0 ? 'text-green-400' : ''}>{shipping === 0 ? 'Free' : `Rs ${shipping}`}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-white/40">Discount</span><span className="text-green-400">-Rs {discount.toLocaleString()}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-white/40">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-white/40">Shipping</span><span className={shipping === 0 ? 'text-green-400' : ''}>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-white/40">Discount</span><span className="text-green-400">-${discount.toFixed(2)}</span></div>
               <div className="flex justify-between font-black text-lg border-t border-white/10 pt-3 mt-1">
-                <span>Total</span><span className="text-amber-400">Rs {total.toLocaleString()}</span>
+                <span>Total</span><span className="text-amber-400">${total.toFixed(2)}</span>
               </div>
             </div>
             <div className={`mt-4 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 ${form.payMethod === 'stripe' ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400' : 'bg-amber-400/10 border border-amber-400/20 text-amber-400'}`}>

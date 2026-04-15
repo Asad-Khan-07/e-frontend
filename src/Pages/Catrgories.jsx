@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { products } from '../data/products'
 import Footer from '../components/Footer'
+import { useCart } from '../context/context'
 
 const allCategories = Object.values(
   products.reduce((acc, p) => {
@@ -23,6 +24,7 @@ const categoryStyles = {
 }
 
 export default function Categories() {
+  const { convertToUSD } = useCart()
   return (
     <main className="min-h-screen">
 
@@ -89,7 +91,7 @@ export default function Categories() {
                       <div>
                         <p className="text-white/30 text-xs mb-0.5">Starting from</p>
                         <p className="text-amber-400 font-black">
-                          Rs {Math.min(...products.filter(p => p.category === product.category).map(p => p.price)).toLocaleString()}
+                          ${convertToUSD(Math.min(...products.filter(p => p.category === product.category).map(p => p.price))).toFixed(2)}
                         </p>
                       </div>
                       <div className="flex items-center gap-1 bg-white/10 hover:bg-amber-400 hover:text-black transition-all rounded-full px-4 py-2 text-sm font-bold text-white">

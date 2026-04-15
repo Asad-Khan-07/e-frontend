@@ -45,7 +45,7 @@ export default function AdminCategories() {
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
         <h3 className="font-bold mb-4 text-amber-400">Add New Category</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
+          <div className='flex items-start flex-col justify-center '>
             <label className="text-white/60 text-xs mb-1 block">Name</label>
             <input
               type="text"
@@ -55,7 +55,7 @@ export default function AdminCategories() {
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-400/50 transition-colors"
             />
           </div>
-          <div>
+          <div className='flex items-start flex-col justify-center '>
             <label className="text-white/60 text-xs mb-1 block">Slug (auto)</label>
             <input
               type="text"
@@ -65,7 +65,7 @@ export default function AdminCategories() {
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-400/50 transition-colors"
             />
           </div>
-          <div>
+          <div className='flex items-start flex-col justify-center '>
             <label className="text-white/60 text-xs mb-1 block">Color</label>
             <div className="flex gap-2">
               <input

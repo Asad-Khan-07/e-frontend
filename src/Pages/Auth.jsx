@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { userLogin, userRegister } from '../services/api'
+import { useTheme } from '../context/context'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -8,6 +9,7 @@ export default function AuthPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { theme } = useTheme()
 
   const handleSubmit = async () => {
     setError('')
@@ -32,12 +34,12 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+    <div className={`min-h-screen ${theme === 'light' ? 'bg-slate-50' : 'bg-[#0a0a0a]'} flex items-center justify-center px-4`}>
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-black text-amber-400">LUXE<span className="text-white">STORE</span></Link>
-          <p className="text-white/40 mt-2 text-sm">
+          <Link to="/" className="text-3xl font-black text-amber-400">LUXE<span className={theme === 'light' ? 'text-slate-900' : 'text-white'}>STORE</span></Link>
+          <p className={`text-white/40 mt-2 text-sm ${theme === 'light' ? 'text-slate-500' : ''}`}>
             {isLogin ? 'Welcome back' : 'Create your account'}
           </p>
         </div>

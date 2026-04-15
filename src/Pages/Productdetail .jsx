@@ -14,16 +14,16 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
 
-  const { setCart } = useCart()
+  const { setCart, convertToUSD } = useCart()
 
   useEffect(() => {
     setLoading(true)
 
-    // Check karo ke id numeric hai (local data) ya MongoDB _id
+    // Check whether the id is numeric (local data) or a MongoDB _id
     const isNumericId = /^\d+$/.test(id)
 
     if (isNumericId) {
-      // Local data se product dhundo
+      // Find product from local data
       const localProduct = localProducts.find(p => String(p.id) === String(id))
       if (localProduct) {
         setProduct({ ...localProduct, _id: localProduct.id })
@@ -33,7 +33,7 @@ export default function ProductDetail() {
       }
       setLoading(false)
     } else {
-      // MongoDB _id hai, API se fetch karo
+      // It's a MongoDB _id, fetch from API
       getProduct(id)
         .then(data => {
           if (data && data._id) {
@@ -141,12 +141,12 @@ export default function ProductDetail() {
           )}
 
           <div className="flex items-baseline gap-3 mb-8 pb-8 border-b border-white/10">
-            <span className="text-5xl font-black text-amber-400">Rs {product.price?.toLocaleString()}</span>
+            <span className="text-5xl font-black text-amber-400">${convertToUSD(product.price)}</span>
             {product.originalPrice && (
               <>
-                <span className="text-white/30 text-xl line-through">Rs {product.originalPrice?.toLocaleString()}</span>
+                <span className="text-white/30 text-xl line-through">${convertToUSD(product.originalPrice)}</span>
                 <span className="bg-red-500/20 text-red-400 text-sm font-bold px-2 py-1 rounded-lg">
-                  Save Rs {(product.originalPrice - product.price).toLocaleString()}
+                  Save ${(convertToUSD(product.originalPrice - product.price))}
                 </span>
               </>
             )}
@@ -213,7 +213,7 @@ export default function ProductDetail() {
 
           <div className="grid grid-cols-3 gap-3 mb-8">
             {[
-              { icon: '🚚', label: 'Free Delivery', sub: 'Over Rs 2000' },
+              { icon: '🚚', label: 'Free Delivery', sub: 'Over $7.14' },
               { icon: '↩️', label: 'Easy Returns', sub: '30-day policy' },
               { icon: '🔒', label: 'Secure Pay', sub: '100% safe' },
             ].map((perk) => (

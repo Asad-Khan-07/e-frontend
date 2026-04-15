@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { getMyOrders, cancelOrder } from '../services/api'
+import { useCart } from '../context/context'
 
 const statusColors = {
   pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20',
@@ -10,7 +11,7 @@ const statusColors = {
   cancelled: 'bg-red-500/20 text-red-400 border-red-500/20',
 }
 
-// Sirf in statuses mein cancel allow hai
+// Cancellation is only allowed for these statuses
 const cancellableStatuses = ['pending', 'processing']
 
 export default function ProfilePage() {
@@ -21,6 +22,7 @@ export default function ProfilePage() {
   const [cancelError, setCancelError] = useState('')
   const navigate = useNavigate()
   const user = JSON.parse(localStorage.getItem('user') || 'null')
+  const { convertToUSD } = useCart()
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return }
@@ -50,15 +52,15 @@ export default function ProfilePage() {
     try {
       const result = await cancelOrder(orderId)
       if (result && (result.status === 'cancelled' || result._id)) {
-        // Local state update karo — API dobara call karne ki zaroorat nahi
+        // Update local state — no need to call the API again
         setOrders(prev =>
           prev.map(o => o._id === orderId ? { ...o, status: 'cancelled' } : o)
         )
       } else {
-        setCancelError(result?.message || 'Order cancel nahi ho saka. Dobara try karein.')
+        setCancelError(result?.message || 'Order could not be cancelled. Please try again.')
       }
     } catch {
-      setCancelError('Network error. Dobara try karein.')
+      setCancelError('Network error. Please try again.')
     } finally {
       setCancellingId(null)
     }
@@ -134,14 +136,14 @@ export default function ProfilePage() {
                   {order.items.map((item, i) => (
                     <div key={i} className="flex justify-between text-sm">
                       <span className="text-white/70">{item.name} <span className="text-white/30">x{item.quantity}</span></span>
-                      <span className="text-white">Rs {(item.price * item.quantity).toLocaleString()}</span>
+                      <span className="text-white">${(convertToUSD(item.price * item.quantity)).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="border-t border-white/10 pt-4 flex justify-between items-center">
                   <p className="text-white/40 text-xs">{new Date(order.createdAt).toLocaleDateString('en-PK')}</p>
-                  <p className="font-bold text-amber-400">Total: Rs {order.totalAmount.toLocaleString()}</p>
+                  <p className="font-bold text-amber-400">Total: ${convertToUSD(order.totalAmount).toFixed(2)}</p>
                 </div>
 
                 {/* Cancel Button — sirf pending/processing orders ke liye */}
@@ -151,20 +153,20 @@ export default function ProfilePage() {
                       // Confirmation prompt
                       <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
                         <p className="text-white/80 text-sm mb-3 text-center">
-                          Kya aap wakai yeh order cancel karna chahte hain?
+                          Are you sure you want to cancel this order?
                         </p>
                         <div className="flex gap-3">
                           <button
                             onClick={() => setConfirmId(null)}
                             className="flex-1 py-2 rounded-xl border border-white/20 text-white/60 hover:text-white text-sm font-medium transition-colors"
                           >
-                            Nahi, wapas jao
+                            No, go back
                           </button>
                           <button
                             onClick={handleConfirmCancel}
                             className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-sm font-bold transition-colors"
                           >
-                            Haan, Cancel karo
+                            Yes, cancel it
                           </button>
                         </div>
                       </div>
@@ -183,7 +185,7 @@ export default function ProfilePage() {
                 {/* Already cancelled message */}
                 {order.status === 'cancelled' && (
                   <div className="mt-4 pt-4 border-t border-white/10">
-                    <p className="text-center text-red-400/60 text-xs">Yeh order cancel ho chuka hai</p>
+                    <p className="text-center text-red-400/60 text-xs">This order has been cancelled</p>
                   </div>
                 )}
 
@@ -191,7 +193,7 @@ export default function ProfilePage() {
                 {['shipped', 'delivered'].includes(order.status) && (
                   <div className="mt-4 pt-4 border-t border-white/10">
                     <p className="text-center text-white/20 text-xs">
-                      {order.status === 'shipped' ? 'Order ship ho gaya — cancel nahi ho sakta' : 'Order deliver ho gaya'}
+                      {order.status === 'shipped' ? 'Order has shipped — cancellation not possible' : 'Order has been delivered'}
                     </p>
                   </div>
                 )}
